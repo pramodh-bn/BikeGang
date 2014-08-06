@@ -1,0 +1,32 @@
+---
+title: "Bike Demand Prediction Notes"
+output: html_document
+---
+Loading the training data set
+```{r}
+data.train = read.csv('data\\train.csv')
+summary(data.train)
+
+data.test = read.csv('data\\test.csv')
+summary(data.test)
+```
+
+Generate prediction file function. Use this method to generate file.
+For example `generateKaggleOutput('test.csv', testData, predictionData)'
+```{r}
+generateKaggleOutput = function(fileName="output.csv", test, prediction){
+  pred.output = cbind(datetime=format(as.POSIXlt(test[,1])),count=prediction)
+  write.csv(pred.output, file=paste("submissions\\",fileName, sep=""), row.names=FALSE)
+}
+```
+
+
+Base Line data
+```{r}
+baseCount = as.integer(mean(data.train[,'count']))
+generateKaggleOutput("test.csv", data.test, baseCount)
+
+```
+
+
+
