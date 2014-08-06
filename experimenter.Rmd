@@ -120,8 +120,4 @@ plot(count)
 boxplot(count)
 ```
 
-```{r}
-
-```
-
 
