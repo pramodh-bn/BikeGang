@@ -39,6 +39,7 @@ head(bike_train)
 
 You can also embed plots, for example:
 
+<<<<<<< HEAD
 ```{r,}
 month <- levels(bike_train$month)
 
@@ -60,12 +61,19 @@ barplot(total_rent[,1], ylim = c(0,120000), main = "2011", xlab = "months")
 barplot(total_rent[,2], ylim = c(0,120000), main = "2012", xlab = "months")
 
 # As we can see a marked rise in the number of bike rented in year 2012
+=======
+```{r, echo=FALSE}
+
+>>>>>>> 217acc11731782d3187101743ccf20377de26e2c
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 ```{r }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 217acc11731782d3187101743ccf20377de26e2c
 
 ```
 
