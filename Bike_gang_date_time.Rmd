@@ -32,18 +32,40 @@ bike_train$year <- years(dates(chron_date))
 
 bike_train$hour <- hours(chron_date)
 
+bike_train$weekdays <- weekdays(chron_date)
+
 head(bike_train)
 ```
 
 You can also embed plots, for example:
 
-```{r, echo=FALSE}
-plot(cars)
+```{r,}
+month <- levels(bike_train$month)
+
+year = levels(bike_train$year)
+
+total_rent <- data.frame(y_11 = c() , y_12 = c())
+
+for ( i in month){
+   for(j in year){
+    month_wise <- subset(bike_train , month == i & year == j)
+    total_rent[i,j] = sum(month_wise$count)
+   }
+}
+total_rent$month <- month
+
+
+barplot(total_rent[,1], ylim = c(0,120000), main = "2011", xlab = "months")
+
+barplot(total_rent[,2], ylim = c(0,120000), main = "2012", xlab = "months")
+
+# As we can see a marked rise in the number of bike rented in year 2012
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 ```{r }
-a = 3
+
+
 
 ```
 
