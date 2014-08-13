@@ -1,0 +1,83 @@
+---
+title: "BikeGang-Feature Extraction"
+author: "Lovekesh"
+date: "Sunday, August 10, 2014"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r comment=""  }
+bike_train <- read.csv("data\\train.csv", header = T)
+
+head(bike_train)
+# Using chron functions to dissect the date-time varibale
+
+require(chron)
+
+bike_train$datetime <- as.character(bike_train$datetime)
+
+dates <- t(as.data.frame(strsplit(bike_train$datetime, " ")))
+times <- dates[,2]
+dates <- dates[,1]
+
+chron_date <- chron(dates = dates,times = times, format = c(dates = "y-m-D" ,  "H:M:S"))
+
+# Creating Months name variable in the dataset
+bike_train$month <- months(dates(chron_date) , abbreviate = T)
+
+bike_train$year <- years(dates(chron_date))
+
+bike_train$hour <- hours(chron_date)
+
+bike_train$weekdays <- weekdays(chron_date)
+
+head(bike_train)
+```
+
+You can also embed plots, for example:
+
+<<<<<<< HEAD
+```{r,}
+month <- levels(bike_train$month)
+
+year = levels(bike_train$year)
+
+total_rent <- data.frame(y_11 = c() , y_12 = c())
+
+for ( i in month){
+   for(j in year){
+    month_wise <- subset(bike_train , month == i & year == j)
+    total_rent[i,j] = sum(month_wise$count)
+   }
+}
+total_rent$month <- month
+
+
+barplot(total_rent[,1], ylim = c(0,120000), main = "2011", xlab = "months")
+
+barplot(total_rent[,2], ylim = c(0,120000), main = "2012", xlab = "months")
+
+# As we can see a marked rise in the number of bike rented in year 2012
+=======
+```{r, echo=FALSE}
+
+>>>>>>> 217acc11731782d3187101743ccf20377de26e2c
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r }
+
+<<<<<<< HEAD
+
+=======
+>>>>>>> 217acc11731782d3187101743ccf20377de26e2c
+
+```
+
+```{r}
+
+```
+
