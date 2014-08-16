@@ -1,0 +1,182 @@
+---
+title: "Bivariate Models"
+output: pdf_document
+---
+
+#### Outcome: Count  
+
+>Code executed: `r Sys.Date()`
+
+```{r, echo=FALSE, tidy=TRUE, comment=""}
+#loading data 
+load("./data/dfTrain.Rda") 
+library(ggplot2)
+# function for pretty p-value output 
+prettyPVal <- function(pval) {
+  if (is.na(pval)) {
+    "NA"
+  } else {
+    log10pval <- log10(pval)
+    if (log10pval < -5) {
+      sprintf("< 0.00001")
+    } else if (log10pval < -4) {
+      sprintf("< 0.0001")
+    } else if (log10pval < -3) {
+      sprintf("< 0.001")
+    } else {
+      sprintf("%0.3f", round(pval, digits=3))
+    }
+  }
+}
+```
+
+***
+
+<center> <h2>  Seasons vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=season_char, y=count, fill=season_char)) + geom_boxplot()
+ + ggtitle("Seasons vs. Count"))
+fit <- lm(count ~ season_char, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Months vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=as.factor(month), y=count, fill=as.factor(month))) 
+ + geom_boxplot() + ggtitle("Month vs. Count"))
+fit <- lm(count ~ month, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Holiday vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=as.factor(holiday), y=count, fill=as.factor(holiday))) 
+ + geom_boxplot() + ggtitle("Holiday vs. Count"))
+fit <- lm(count ~ holiday, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Workingday vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=as.factor(workingday), y=count, fill=as.factor(workingday))) 
+ + geom_boxplot() + ggtitle("Workingday vs. Count"))
+fit <- lm(count ~ workingday, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Week Day vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=as.factor(week_day), y=count, fill=as.factor(week_day))) 
+ + geom_boxplot() + ggtitle("Week_Day vs. Count") +theme(axis.title.x = element_blank())
+ + scale_x_discrete(limits=c("Monday", "Tuesday", "Wednesday", 
+                             "Thursday", "Friday", "Saturday", "Sunday")))
+fit <- lm(count ~ week_day, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Hour vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=hour, y=count)) + geom_point(shape=1) 
+ + geom_smooth(method=lm, se=FALSE) + ggtitle("Hour vs. Count"))
+fit <- lm(count ~ hour, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> AM/PM vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=as.factor(am_pm), y=count, fill=as.factor(am_pm))) 
+ + geom_boxplot() + ggtitle("AM/PM vs. Count"))
+fit <- lm(count ~ am_pm, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Weather vs. Count </h2> </center>
+#### Wether Types:  
+##### 1. Clear, Few clouds, Partly cloudy, Partly cloudy   
+##### 2. Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist   
+##### 3. Light Snow, Light Rain + Thunderstorm + Scatt clouds, Light Rain + Scatt clouds   
+##### 4. Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog   
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=as.factor(weather), y=count, fill=as.factor(weather))) 
+ + geom_boxplot() + ggtitle("Weather vs. Count"))
+fit <- lm(count ~ as.factor(weather), data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Temperature vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=temp, y=count)) + geom_point(shape=1) 
+ + geom_smooth(method=lm, se=FALSE) + ggtitle("Temp vs. Count"))
+fit <- lm(count ~ temp, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Ambient Temperature vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=atemp, y=count)) + geom_point(shape=1) 
+ + geom_smooth(method=lm, se=FALSE) + ggtitle("Ambient Temp vs. Count"))
+fit <- lm(count ~ atemp, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Humidity vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=humidity, y=count)) + geom_point(shape=1) 
+ + geom_smooth(method=lm, se=FALSE) + ggtitle("Humidity vs. Count"))
+fit <- lm(count ~ humidity, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Windspeed vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=windspeed, y=count)) + geom_point(shape=1) 
+ + geom_smooth(method=lm, se=FALSE) + ggtitle("Windspeed vs. Count"))
+fit <- lm(count ~ windspeed, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
