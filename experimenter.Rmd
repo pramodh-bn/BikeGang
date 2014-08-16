@@ -50,6 +50,11 @@ generateKaggleOutput = function(fileName="output.csv", test, prediction){
   pred.output = cbind(datetime=format(as.POSIXlt(test[,1])),count=prediction)
   write.csv(pred.output, file=paste("submissions\\",fileName, sep=""), row.names=FALSE)
 }
+pkgTest = function(x) {
+  if(x %in% rownames(installed.packages()) == FALSE) {
+    install.packages(x)
+  }
+}
 ```
 
 
@@ -59,6 +64,14 @@ baseCount = as.integer(mean(data.train[,'count']))
 generateKaggleOutput("test.csv", data.test, baseCount)
 
 ```
+
+Check for the baseline RMSLE
+```{r}
+pkgTest("Metrics")
+library("Metrics")
+rmsle(baseCount, data.train$count)
+```
+
 
 
 ```{r}
