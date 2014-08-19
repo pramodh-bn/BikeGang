@@ -14,6 +14,7 @@ df$week_day <- weekdays(df$date)
 df$hour <- hour(as.POSIXlt(df$datetime))
 df$am_pm <- ifelse(df$hour %in% 0:11, "am", "pm")  
 df$month <- month(as.POSIXlt(df$datetime))
+df$day <- day(as.POSIXlt(df$datetime))
 
 # describing season var 
 for(i in 1:dim(df)[1]){

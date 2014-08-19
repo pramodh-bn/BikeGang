@@ -1,6 +1,6 @@
 ---
 title: "Bivariate Models"
-output: pdf_document
+output: html_document
 ---
 
 #### Outcome: Count  
@@ -47,8 +47,20 @@ pval <- (anova(fit)$'Pr(>F)'[1])
 <center> <h2> Months vs. Count </h2> </center>
 ```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
 (ggplot(dfTrain, aes(x=as.factor(month), y=count, fill=as.factor(month))) 
- + geom_boxplot() + ggtitle("Month vs. Count"))
+ + geom_boxplot() + ggtitle("Months vs. Count"))
 fit <- lm(count ~ month, data=dfTrain)
+summary(fit)
+pval <- (anova(fit)$'Pr(>F)'[1])
+```
+#### Global p-val `r prettyPVal(pval)`
+
+***
+
+<center> <h2> Days vs. Count </h2> </center>
+```{r, echo=FALSE, tidy=TRUE, comment="", fig.height=4, fig.width=7}
+(ggplot(dfTrain, aes(x=as.factor(day), y=count, fill=as.factor(day))) 
+ + geom_boxplot() + ggtitle("Day vs. Count") + theme(legend.position="none"))
+fit <- lm(count ~ day, dfTrain)
 summary(fit)
 pval <- (anova(fit)$'Pr(>F)'[1])
 ```
