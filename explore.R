@@ -32,6 +32,13 @@ wilcox.test(dfTrain$holiday, dfTrain$count, paired=FALSE)
  + geom_boxplot() + ggtitle("Workingday vs. Count"))
 wilcox.test(dfTrain$workingday, dfTrain$count, paired=FALSE)
 
+# day 
+(ggplot(dfTrain, aes(x=as.factor(day), y=count, fill=as.factor(day))) 
+ + geom_boxplot() + ggtitle("Day vs. Count"))
+fit <- lm(count ~ day, df)
+summary(fit)
+
+
 # weather 
 #1: Clear, Few clouds, Partly cloudy, Partly cloudy 
 #2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist 

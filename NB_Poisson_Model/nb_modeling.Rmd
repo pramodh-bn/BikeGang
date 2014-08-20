@@ -1,0 +1,58 @@
+---
+title: "Poisson / Negative Binomial Modeling"
+author: "MSup"
+output: html_document
+---
+##### Code executed: `r Sys.Date()`
+
+```{r, echo=FALSE}
+load("../data/dfTrain.Rda") 
+load("../data/dfTest.Rda") 
+library(ggplot2)
+```
+
+### Outcome: Count of Bike Rentals 
+```{r, echo=FALSE, comment="", fig.height=5, fig.width=8}
+summary(dfTrain$count)
+(ggplot(dfTrain, aes(x=count)) + geom_histogram(binwidth=2, colour="darkblue", fill="white") + ggtitle("Distribution of Count") + theme_bw() + geom_vline(aes(xintercept=median(count, na.rm=T)), color="sienna1", linetype="dashed", size=1))
+```
+
+***
+
+### Saturated Model: Poisson 
+#### All predictors with bivariate p-val < 0.20 are included in the model 
+```{r, echo=FALSE, comment=""}
+pois <- glm(count ~ season_char + month + day 
+            + hour + am_pm + as.factor(weather)
+            + atemp + humidity + windspeed, 
+            family = poisson, data = dfTrain)
+summary(pois)
+# getting rid of scientific notation
+options(scipen=999)
+```
+Checking the overdispersion, the residual deviance should be equal to the residual degrees of freedom if the Poisson errors assumption is met:
+Residual deviance = `r pois$deviance`  
+Residual df = `r pois$df.residual`  
+Model is overdispersed (a lot!!!), will use Negative Binomial model to adjust for it.  
+
+***
+
+### Saturated Model: Negative Binomial 
+#### All predictors with bivariate p-val < 0.20 are included in the model 
+```{r, echo=FALSE, comment=""}
+# returning scientific notation
+options(scipen=0)
+library(MASS)
+nb <- glm.nb(count ~ season_char + month + day 
+            + hour + am_pm + as.factor(weather)
+            + atemp + humidity + windspeed, 
+            data = dfTrain)
+summary(nb)
+```
+
+
+
+
+
+
+
