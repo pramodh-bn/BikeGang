@@ -6,8 +6,8 @@ output: html_document
 ##### Code executed: `r Sys.Date()`
 
 ```{r, echo=FALSE}
-load("../data/dfTrain.Rda") 
-load("../data/dfTest.Rda") 
+load("~/dfTrain.Rdata") 
+load("~/dfTest.Rdata") 
 library(ggplot2)
 ```
 
@@ -49,6 +49,7 @@ nb <- glm.nb(count ~ season_char + month + day
             data = dfTrain)
 summary(nb)
 ```
+
 
 
 

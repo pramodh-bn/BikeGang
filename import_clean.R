@@ -40,8 +40,8 @@ rm(i)
 set.seed(123)
 dfTrain <- df[sample(1:nrow(df), nrow(df)*0.7, replace=FALSE),]
 dfTest <- df[!row.names(df) %in% row.names(dfTrain),]
-save(dfTrain, file="./data/dfTrain.Rda")
-save(dfTest, file="./data/dfTest.Rda")
+save(dfTrain, file="~/dfTrain.Rdata")
+save(dfTest, file="~/dfTest.Rdata")
 
 
 
