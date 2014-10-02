@@ -133,4 +133,11 @@ plot(count)
 boxplot(count)
 ```
 
+Trying something new here
+```{r}
+load("dfTrain.Rda")
+summary(dfTrain)
+
+
+```
 

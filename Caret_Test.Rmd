@@ -1,0 +1,125 @@
+---
+title: "Caret_Test"
+author: "Pramodh"
+date: "Saturday, September 27, 2014"
+output: html_document
+---
+
+```{r}
+library(lubridate)
+data.test = read.csv('data\\test.csv')
+data.test$date <- as.Date(data.test$datetime, format="%Y-%m-%d")
+data.test$week_day <- weekdays(data.test$date)
+data.test$hour <- hour(as.POSIXlt(data.test$datetime))
+data.test$am_pm <- ifelse(data.test$hour %in% 0:11, "am", "pm")  
+data.test$month <- month(as.POSIXlt(data.test$datetime))
+data.test$day <- day(as.POSIXlt(data.test$datetime))
+# describing season var 
+for(i in 1:dim(data.test)[1]){
+  if(data.test$season[i] == 1){
+    data.test$season_char[i] <- "spring"
+  } else if(data.test$season[i] == 2){
+    data.test$season_char[i] <- "summer"
+  } else if(data.test$season[i] == 3){
+    data.test$season_char[i] <- "fall"
+  } else if(data.test$season[i] == 4){
+    data.test$season_char[i] <- "winter"
+  } else {
+    data.test$season_char[i] <- " "
+  }
+}
+table(data.test$season)
+table(data.test$season_char)
+
+data.train = read.csv('data\\train.csv')
+data.train$date <- as.Date(data.train$datetime, format="%Y-%m-%d")
+data.train$week_day <- weekdays(data.train$date)
+data.train$hour <- hour(as.POSIXlt(data.train$datetime))
+data.train$am_pm <- ifelse(data.train$hour %in% 0:11, "am", "pm")  
+data.train$month <- month(as.POSIXlt(data.train$datetime))
+data.train$day <- day(as.POSIXlt(data.train$datetime))
+# describing season var 
+for(i in 1:dim(data.train)[1]){
+  if(data.train$season[i] == 1){
+    data.train$season_char[i] <- "spring"
+  } else if(data.train$season[i] == 2){
+    data.train$season_char[i] <- "summer"
+  } else if(data.train$season[i] == 3){
+    data.train$season_char[i] <- "fall"
+  } else if(data.train$season[i] == 4){
+    data.train$season_char[i] <- "winter"
+  } else {
+    data.train$season_char[i] <- " "
+  }
+}
+table(data.train$season)
+table(data.train$season_char)
+
+```
+
+
+
+```{r}
+library(caret)
+set.seed(107)
+
+mTrain = data.train
+mTrain$datetime = NULL
+mTrain$season = factor(mTrain$season)
+mTrain$holiday = factor(mTrain$holiday)
+mTrain$workingday = factor(mTrain$workingday)
+mTrain$weather = factor(mTrain$weather)
+mTrain$date = NULL
+mTrain$week_day = factor(mTrain$week_day)
+mTrain$am_pm = factor(mTrain$am_pm)
+mTrain$season_char = factor(mTrain$season_char)
+summary(mTrain)
+
+inTrain <- createDataPartition(y = mTrain$count, p=.75, list=FALSE)
+str(inTrain)
+in_training <- mTrain[inTrain,]
+in_testing <- mTrain[-inTrain,]
+fitControl = trainControl(method="repeatedcv", number=10, repeats=10)
+gbmFit1 = train(count ~ ., data=in_training, method="gbm", trControl = fitControl, verbose=FALSE)
+gbmFit1
+
+plsFit.predict <- predict(gbmFit1$finalModel, newdata=in_testing, n.trees=150, interaction.depth=3, shrinkage=0.1)
+plsFit.predict[1:20]
+in_training$count[1:20]
+rmsle(in_testing$count, round(plsFit.predict))
+round(plsFit.predict)
+load("dfTest.Rda")
+
+mTest = data.test
+mTest$datetime = NULL
+mTest$season = factor(mTest$season)
+mTest$holiday = factor(mTest$holiday)
+mTest$workingday = factor(mTest$workingday)
+mTest$weather = factor(mTest$weather)
+mTest$date = NULL
+mTest$week_day = factor(mTest$week_day)
+mTest$am_pm = factor(mTest$am_pm)
+mTest$season_char = factor(mTest$season_char)
+summary(mTest)
+mypred = round(predict(gbmFit1$finalModel, newdata = mTest, n.trees=150, interaction.depth=3, shrinkage=0.1))
+generateKaggleOutput("caret_gbm.csv",data.test,mypred)
+
+```
+
+
+```{r}
+glmFit = glm(count ~ ., data=in_training, family = gaussian(link="identity"))
+summary(glmFit)
+glmFit.predict = predict(glmFit, newdata=in_testing)
+head(glmFit.predict)
+rmsle(in_testing$count, glmFit.predict)
+
+
+lmFit = lm(count ~ ., data=in_training)
+summary(lmFit)
+lmFit.predict = predict(lmFit, newdata=in_testing)
+head(lmFit.predict)
+rmsle(in_testing$count, lmFit.predict)
+
+```
+
