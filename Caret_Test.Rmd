@@ -4,77 +4,29 @@ author: "Pramodh"
 date: "Saturday, September 27, 2014"
 output: html_document
 ---
-
 ```{r}
 library(lubridate)
-data.test = read.csv('data\\test.csv')
-data.test$date <- as.Date(data.test$datetime, format="%Y-%m-%d")
-data.test$week_day <- weekdays(data.test$date)
-data.test$hour <- hour(as.POSIXlt(data.test$datetime))
-data.test$am_pm <- ifelse(data.test$hour %in% 0:11, "am", "pm")  
-data.test$month <- month(as.POSIXlt(data.test$datetime))
-data.test$day <- day(as.POSIXlt(data.test$datetime))
-data.test$year <- year(as.POSIXlt(data.test$datetime))
-# describing season var 
-for(i in 1:dim(data.test)[1]){
-  if(data.test$season[i] == 1){
-    data.test$season_char[i] <- "spring"
-  } else if(data.test$season[i] == 2){
-    data.test$season_char[i] <- "summer"
-  } else if(data.test$season[i] == 3){
-    data.test$season_char[i] <- "fall"
-  } else if(data.test$season[i] == 4){
-    data.test$season_char[i] <- "winter"
-  } else {
-    data.test$season_char[i] <- " "
-  }
-}
-table(data.test$season)
-table(data.test$season_char)
-
-data.train = read.csv('data\\train.csv')
-data.train$date <- as.Date(data.train$datetime, format="%Y-%m-%d")
-data.train$week_day <- weekdays(data.train$date)
-data.train$hour <- hour(as.POSIXlt(data.train$datetime))
-data.train$am_pm <- ifelse(data.train$hour %in% 0:11, "am", "pm")  
-data.train$month <- month(as.POSIXlt(data.train$datetime))
-data.train$day <- day(as.POSIXlt(data.train$datetime))
-data.train$year <- year(as.POSIXlt(data.train$datetime))
-# describing season var 
-for(i in 1:dim(data.train)[1]){
-  if(data.train$season[i] == 1){
-    data.train$season_char[i] <- "spring"
-  } else if(data.train$season[i] == 2){
-    data.train$season_char[i] <- "summer"
-  } else if(data.train$season[i] == 3){
-    data.train$season_char[i] <- "fall"
-  } else if(data.train$season[i] == 4){
-    data.train$season_char[i] <- "winter"
-  } else {
-    data.train$season_char[i] <- " "
-  }
-}
-table(data.train$season)
-table(data.train$season_char)
-
-```
-
-
-
-```{r}
 library(caret)
 set.seed(107)
 library(Metrics)
+
+generateKaggleOutput = function(fileName="output.csv", test, prediction){
+  pred.output = cbind(datetime=format(as.POSIXlt(test[,1])),count=prediction)
+  write.csv(pred.output, file=paste("submissions\\",fileName, sep=""), row.names=FALSE)
+}
 
 getTransformedData = function(fileName){
   data = read.csv(fileName,header = TRUE)
   data$date <- as.Date(data$datetime, format="%Y-%m-%d")
   data$week_day <- factor(weekdays(data$date))
-  data$hour <- factor(hour(as.POSIXlt(data$datetime)))
+  data$hour <- hour(as.POSIXlt(data$datetime))
   data$am_pm <- factor(ifelse(data$hour %in% 0:11, "am", "pm"))
   data$month <- factor(month(as.POSIXlt(data$datetime)))
   data$day <- factor(day(as.POSIXlt(data$datetime)))
   data$year <- factor(year(as.POSIXlt(data$datetime)))
+  data$is_sunday <- 0
+  data$is_sunday[data$week_day == 'Sunday'] <- 1
+  data$is_sunday <- factor(data$is_sunday)
  
   for(i in 1:dim(data)[1]){
     if(data$season[i] == 1){
@@ -94,25 +46,123 @@ getTransformedData = function(fileName){
   data$holiday = factor(data$holiday)
   data$workingday = factor(data$workingday)
   data$weather = factor(data$weather)
+  
+  data$hourpart = 4
+  data$hourpart[data$hour<10 & data$hour>3] = 1
+  data$hourpart[data$hour<16 & data$hour>9] = 2
+  data$hourpart[data$hour<22 & data$hour>15] = 3
+  data$hourpart = factor(data$hourpart)
+  data$hour = factor(data$hour)  
+
+  
   return(data)
 }
+trainData = getTransformedData('data\\train.csv')
+testData = getTransformedData('data\\test.csv')
+summary(trainData)
 
-mTrain = data.train
-mTrain$datetime = NULL
-mTrain$season = factor(mTrain$season)
-mTrain$holiday = factor(mTrain$holiday)
-mTrain$workingday = factor(mTrain$workingday)
-mTrain$weather = factor(mTrain$weather)
-mTrain$date = mTrain$date
-mTrain$week_day = factor(mTrain$week_day)
-mTrain$am_pm = factor(mTrain$am_pm)
-mTrain$season_char = factor(mTrain$season_char)
-mTrain$month = factor(mTrain$month)
-mTrain$year = factor(mTrain$year)
-mTest$day = factor(mTest$day)
+base_formula = log(count+1) ~ week_day + holiday + atemp + humidity + month + hour + weather+year
+formula1 = log(registered+1) ~ week_day + holiday + atemp + temp + humidity + month + hour + weather+year+season
+formula2 = log(casual+1) ~ week_day + holiday + atemp + temp + humidity + month + hour + weather+am_pm+year+season
 
-summary(mTrain)
+lmFit_new = lm(base_formula, data=trainData)
+rmsle(trainData$count, exp(predict(lmFit_new)))
+summary(lmFit_new)
 
+
+lmFit1_new = lm(formula1, data=trainData)
+rmsle(trainData$registered, exp(predict(lmFit1_new)))
+summary(lmFit1_new)
+lmFit1_new_prediction = exp(predict(lmFit1_new, newdata=testData))
+
+lmFit2_new = lm(formula2, data=trainData)
+rmsle(trainData$casual, exp(predict(lmFit2_new)))
+summary(lmFit2_new)
+lmFit2_new_prediction = exp(predict(lmFit2_new, newdata=testData))
+
+rmsle(trainData$count, exp(predict(lmFit1_new)) + exp(predict(lmFit2_new)))
+generateKaggleOutput("pn_lm_100820141.csv",testData,lmFit2_new_prediction + lmFit1_new_prediction)
+
+# Old code 
+lmFit = lm(count ~ is_sunday + temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
+summary(lmFit)
+lmFit.prediction = abs(round(predict(lmFit, newdata=testData)))
+head(lmFit.prediction)
+generateKaggleOutput("pn_lm_isSun_1.csv",testData,lmFit.prediction)
+rmsle(abs(round(predict(lmFit))), trainData$count)
+
+# separate registered and casual
+lmFit.registered = lm(registered ~ is_sunday + temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
+
+lmFit.casual = lm(casual ~ temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
+
+lmFit.registered.prediction = abs(round(predict(lmFit.registered, newdata=testData)))
+lmFit.casual.prediction = abs(round(predict(lmFit.casual, newdata=testData)))
+generateKaggleOutput("pn_lm_5.csv",testData,lmFit.registered.prediction + lmFit.casual.prediction)
+
+#log on the count
+lmFit.log.count = lm(log(count+1)~is_sunday + temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
+lmFit.log.count.prediction = round(exp(predict(lmFit.log.count, newdata=testData)))
+head(lmFit.log.count.prediction)
+generateKaggleOutput("pn_lm_is_sun_1.csv",testData,lmFit.log.count.prediction)
+rmsle(trainData$count, exp(predict(lmFit.log.count)))
+
+# the above got 0.64 splitting casual and registered prediction and trying
+lmFit.log.registered = lm(log(registered+1)~is_sunday + temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
+lmFit.log.registered.prediction = round(exp(predict(lmFit.log.registered, newdata=testData)))
+lmFit.log.casual = lm(log(casual+1)~is_sunday + temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
+lmFit.log.casual.prediction = round(exp(predict(lmFit.log.casual, newdata=testData)))
+
+generateKaggleOutput("pn_lm_is_sun_2.csv",testData,lmFit.log.registered.prediction + lmFit.log.casual.prediction )
+lmFit.log.count.prediction
+rmsle(trainData$count, exp(predict(lmFit.log.casual)) + exp(predict(lmFit.log.registered)))
+
+# Trying GLM
+glmFit.log.count = glm(count~temp + humidity + month + hour + week_day + holiday + weather, data=trainData, family = poisson)
+glmFit.log.count.prediction = round(exp(predict(glmFit.log.count, newdata=testData)))
+head(glmFit.log.count.prediction)
+generateKaggleOutput("pn_glm_8.csv",testData,glmFit.log.count.prediction)
+glmFit.log.count.prediction
+rmsle(trainData$count, round(exp(predict(glmFit.log.count))))
+
+#splitting count to registered and casual
+glmFit.log.registered = glm(registered~temp + humidity + month + hour + week_day + holiday + weather, data=trainData, family = poisson)
+glmFit.log.registered.prediction = predict(glmFit.log.registered, newdata=testData)
+glmFit.log.casual = glm(casual~temp + humidity + month + hour + week_day + holiday + weather, data=trainData, family = poisson)
+glmFit.log.casual.prediction = predict(glmFit.log.casual, newdata=testData)
+generateKaggleOutput("pn_glm_9.csv",testData,exp(glmFit.log.registered.prediction) + exp(glmFit.log.casual.prediction))
+rmsle(trainData$count, exp(predict(glmFit.log.casual)) + exp(predict(glmFit.log.registered)))
+
+
+```
+
+```{r}
+library(party)
+base_formula = log(count+1) ~ week_day + holiday + atemp + humidity + month + hour + weather+year
+fit.ctree= ctree(base_formula, data=trainData)
+fit.ctree
+predict.ctree = round(exp(predict(fit.ctree, newdata=testData)))
+round(predict(fit.ctree))
+rmsle(trainData$count, round(exp(predict(fit.ctree))))
+generateKaggleOutput("pn_ctree_1009_3.csv",testData, predict.ctree)
+
+fit1.ctree= ctree(formula1, data=trainData)
+fit1.ctree
+predict1.ctree = round(exp(predict(fit1.ctree, newdata=testData)))
+rmsle(trainData$registered, round(exp(predict(fit1.ctree))))
+
+fit2.ctree= ctree(formula2, data=trainData)
+fit2.ctree
+predict2.ctree = round(exp(predict(fit2.ctree, newdata=testData)))
+rmsle(trainData$casual, round(exp(predict(fit2.ctree))))
+rmsle(trainData$count, round(exp(predict(fit2.ctree))) + round(exp(predict(fit1.ctree))))
+generateKaggleOutput("pn_ctree_1009_4.csv",testData, predict1.ctree+predict2.ctree)
+
+```
+
+
+
+```{r}
 inTrain <- createDataPartition(y = mTrain$count, p=.75, list=FALSE)
 str(inTrain)
 in_training <- mTrain[inTrain,]
@@ -169,40 +219,4 @@ rmsle(abs(round(predict(lmFit1))), mTrain$count)
 
 ```
 
-```{r}
-trainData = getTransformedData('data\\train.csv')
-testData = getTransformedData('data\\test.csv')
-summary(trainData)
-lmFit = lm(count ~ temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
-summary(lmFit)
-lmFit.prediction = abs(round(predict(lmFit, newdata=testData)))
-head(lmFit.prediction)
-generateKaggleOutput("pn_lm_4.csv",testData,lmFit.prediction)
-
-
-# separate registered and casual
-lmFit.registered = lm(registered ~ temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
-
-lmFit.casual = lm(casual ~ temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
-
-lmFit.registered.prediction = abs(round(predict(lmFit.registered, newdata=testData)))
-lmFit.casual.prediction = abs(round(predict(lmFit.casual, newdata=testData)))
-generateKaggleOutput("pn_lm_5.csv",testData,lmFit.registered.prediction + lmFit.casual.prediction)
-
-#log on the count
-lmFit.log.count = lm(log(count+1)~temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
-lmFit.log.count.prediction = round(exp(predict(lmFit.log.count, newdata=testData)))
-head(lmFit.log.count.prediction)
-generateKaggleOutput("pn_lm_6.csv",testData,lmFit.log.count.prediction)
-
-# the above got 0.64 splitting casual and registered prediction and trying
-lmFit.log.registered = lm(log(registered+1)~temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
-lmFit.log.registered.prediction = round(exp(predict(lmFit.log.registered, newdata=testData)))
-lmFit.log.casual = lm(log(casual+1)~temp + humidity + year + month + hour + week_day + holiday + weather, data=trainData)
-lmFit.log.casual.prediction = round(exp(predict(lmFit.log.casual, newdata=testData)))
-
-generateKaggleOutput("pn_lm_7.csv",testData,lmFit.log.registered.prediction + lmFit.log.casual.prediction )
-
-
-```
 
