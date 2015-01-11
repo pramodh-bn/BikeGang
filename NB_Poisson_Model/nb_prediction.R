@@ -1,19 +1,30 @@
-# testing prediciton with NB model  
+# Testing prediciton with NB model  
+
+# Loading data 
+load("./data/dfTrain.Rda")  # created in import_clean.R
+load("./data/dfTest.Rda") # created in import_clean.R
 
 # NB model 
 library(MASS)
 nb <- glm.nb(count ~ season_char + month + day 
              + hour + am_pm + as.factor(weather)
              + atemp + humidity + windspeed, 
-             data = rtestTrain)
+             data = dfTrain)
 summary(nb)
 
 dfTest$nb.pred <- predict (nb, dfTest, type ="response")
+dfTrain$nb.pred <- predict (nb, dfTrain, type ="response")
 mean(dfTest$count)
 mean(dfTest$nb.pred)
 
+# checking RMSLE for the prediction accuracy 
+# P.S. lower values are better
+library(Metrics)
+rmsle(dfTest$count, dfTest$nb.pred)
+
+
 ##################################################################
-# reading in Kaggle test dataset 
+# Reading in Kaggle test dataset 
 rtest <- read.csv("./data/test.csv")
 
 # cleaning up test dataset 
